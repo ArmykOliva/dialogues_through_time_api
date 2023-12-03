@@ -266,6 +266,10 @@ async def test_stream_debug():
 async def test_stream():
     return StreamingResponse(test_stream_debug(),media_type="text/event-stream")
 
+@app.post("/test_stream_post")
+async def test_stream_post():
+    return StreamingResponse(test_stream(),media_type="text/event-stream")
+
 @app.get("/chat_history/{unique_id}")
 def get_chat_history(unique_id: str):
     chat_state = get_or_create_chat_state(unique_id)
