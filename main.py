@@ -257,6 +257,15 @@ async def read_stream(request: Request):
     body = await request.json()
     return StreamingResponse(stream_generator(body), media_type="text/event-stream")
 
+async def test_stream_debug():
+    for i in range(5):
+        yield f"data: {i}\n\n"
+        await asyncio.sleep(1)
+
+@app.get("/test_stream")
+async def test_stream():
+    return StreamingResponse(test_stream_debug(),media_type="text/event-stream")
+
 @app.get("/chat_history/{unique_id}")
 def get_chat_history(unique_id: str):
     chat_state = get_or_create_chat_state(unique_id)

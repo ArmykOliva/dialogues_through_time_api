@@ -2,7 +2,7 @@ import requests, json
 
 
 s = requests.session()
-unique_id = s.get("http://127.0.0.1:5000/get_unique_id").json()["id"]
+unique_id = s.get("https://dialoguesthroughtime.azurewebsites.net/get_unique_id").json()["id"]
 print(unique_id)
 while True:
     # Assuming you want to make a request to the stream endpoint
@@ -11,7 +11,7 @@ while True:
     if (inpt == "exit"):
         data["end_conversation"] = True
         
-    stream_response = s.post(f"http://127.0.0.1:5000/chat", stream=True,json=data)
+    stream_response = s.post(f"https://dialoguesthroughtime.azurewebsites.net/chat", stream=True,json=data)
 
     # You should also handle streaming the response here if that's your intent
     try:
