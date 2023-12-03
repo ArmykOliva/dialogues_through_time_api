@@ -1,0 +1,7 @@
+openai
+uvicorn
+redis
+fastapi
+python-dotenv
+pydantic
+traceback
