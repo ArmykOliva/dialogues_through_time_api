@@ -4,4 +4,3 @@ redis
 fastapi
 python-dotenv
 pydantic
-traceback
