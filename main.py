@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from time import sleep
 from pydantic import BaseModel
 from traceback import print_exc
+from dataclasses import dataclass, field, asdict
 
 from prompts import *
 load_dotenv()
@@ -52,6 +53,11 @@ class ChatState:
     print_response: bool = True
     streaming: bool = False # just for the unity client to know that streaming stopped when he sees this
 
+    def reset_state(state):
+        default_state = ChatState()
+        return ChatState(**asdict(default_state))
+
+
     def to_json(self):
         return json.dumps(self.__dict__)
 
@@ -61,14 +67,17 @@ class ChatState:
         return ChatState(**data)
     
 # Function to retrieve or initialize chat state
-def get_or_create_chat_state(unique_id):
+def get_chat_data(unique_id):
     json_data = r.get(unique_id)
     if json_data:
         return ChatState.from_json(json_data)
     else:
-        chat_state = ChatState()
-        set_chat_state(unique_id, chat_state)
-        return chat_state 
+        return None
+    
+def create_chat_data(unique_id):
+    chat_state = ChatState()
+    set_chat_state(unique_id, chat_state)
+    return chat_state 
     
 def set_chat_state(unique_id, chat_state):
     r.set(unique_id, chat_state.to_json())
@@ -131,10 +140,14 @@ async def handle_chat(c:ChatState,request_body:dict):
     if ("trolling_up" in flow):
         c.trolling += max(0,flow["trolling_up"])
 
-    if (c.trolling >= TROLLING_LIMIT):
-        print("Trolling too much. BYE. DONT COME BACK.")
-        c.end_reason = "trolling"
-        return
+    #if (c.trolling >= TROLLING_LIMIT):
+    #    print("Trolling too much. BYE. DONT COME BACK.")
+    #    c.ai_msg = "Sorry, we will have to start over..."
+    #    yield
+    #    await asyncio.sleep(2)
+    #    c.end_reason = "trolling"
+    #
+    #    return
 
     #get input
     needs_input = "needs_user_input" in flow and flow["needs_user_input"]
@@ -185,6 +198,7 @@ async def handle_chat(c:ChatState,request_body:dict):
         c.end_reason = "end_conversation"
         c.previous_chat_history = c.chat_history.copy()
         c.chat_history = []
+        c.render_chat_history = []
         c.ai_msg = ""
         c.user_msg = ""
         c.previous_scene = c.current_scene
@@ -204,6 +218,7 @@ async def handle_chat(c:ChatState,request_body:dict):
 @app.get("/get_unique_id")
 def get_unique_id():
     unique_id = str(uuid.uuid4())  # Generate a random UUID
+    create_chat_data(unique_id)
     return {"id": unique_id}
 
 ## Stream the response of gpt
@@ -213,7 +228,7 @@ async def stream_generator(request_body:dict):
     if (not unique_id):
         raise Exception("Unique id is none")
 
-    chat_state = get_or_create_chat_state(unique_id)
+    chat_state = get_chat_data(unique_id)
     if (chat_state.processing):
         print("processing and accessing again????")
         #raise Exception("processing and got a streaming call")
@@ -228,18 +243,23 @@ async def stream_generator(request_body:dict):
         
         i = 0
         while (i == 0 or chat_state.end_reason == "" or chat_state.end_reason == "forward"):
+            i += 1
             async for response in handle_chat(chat_state,request_body):
                 response_data = json.dumps({"ai_speaking": chat_state.ai_msg})
-                i += 1
                 print(response_data) #TODO: fix bug where when entity says two messages at a time, it then first first shows firs buubble, then second and then both at a time
                 if (chat_state.print_response):
                     yield f"data: {response_data}\n\n"  # Ensure SSE format
+
 
         chat_state.processing = False
         set_chat_state(unique_id, chat_state)
         response_data = chat_state.to_json()
         await asyncio.sleep(0.5)
         yield response_data.encode('utf-8') 
+
+        #reset chat if trolling
+        if (chat_state.end_reason == "trolling"):
+            chat_state.reset_state()
 
     #reset processing
     except Exception as e:
@@ -252,10 +272,10 @@ async def stream_generator(request_body:dict):
 class UserMessage(BaseModel):
     user_msg: str
         
-@app.post("/chat")
-async def read_stream(request: Request):
-    body = await request.json()
-    return StreamingResponse(stream_generator(body), media_type="text/event-stream")
+@app.get("/chat")
+async def read_stream(unique_id: str = Query(None), user_msg: str = Query(None)):
+    request_body = {'unique_id': unique_id, 'user_msg': user_msg}
+    return StreamingResponse(stream_generator(request_body), media_type="text/event-stream")
 
 async def test_stream_debug():
     for i in range(5):
@@ -272,8 +292,8 @@ async def test_stream_post():
 
 @app.get("/chat_history/{unique_id}")
 def get_chat_history(unique_id: str):
-    chat_state = get_or_create_chat_state(unique_id)
-    return chat_state.__dict__
+    chat_state = get_chat_data(unique_id)
+    return chat_state.__dict__ if chat_state else None
 
 if __name__ == "__main__":
     #ts
