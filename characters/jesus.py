@@ -16,7 +16,7 @@ JESUS_CONFIG = {
 
 JESUS_FLOW = {
     "introduction": {
-        "prompt":"The user appears in front of you. Introduce yourself and say that you want to teach him/her about love and leadership. Ask him if he in his life come to understand what justice is.",
+        "prompt":"The user appears in front of you. Introduce yourself and say that you want to teach him/her about love and leadership. Tell him some facts about yourself.",
         "save_prompt":True,
         "save_ai_msg":True,
         "print_response":True,

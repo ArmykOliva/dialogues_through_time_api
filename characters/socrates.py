@@ -27,7 +27,7 @@ SOCRATES_FLOW = {
         "needs_user_input":False
     },
     "chat": {
-        "prompt":"The user said: {{user_msg}}\nContinue with the conversation.",
+        "prompt":"The user said: {{user_msg}}\nContinue with the conversation. Make sure to try to teach the user something, some actual facts from your life and your time.",
         "save_prompt":True,
         "save_ai_msg":True,
         "print_response":True,
