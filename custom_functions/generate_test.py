@@ -20,7 +20,7 @@ def generate_test(response):
             "prompt":"The user answered with: {{user_msg}}\nDid the user answer the question according to the chat history correctly? (yes/no) Write only 'yes' if he answered correctly and 'no' if he answered incorrectly.",
             "save_prompt":True,
             "save_ai_msg":True,
-            "print_response":True,
+            "print_response":False,
             "choices": { 
                 "yes":f"correct_answer_{i}",
                 "no":f"incorrect_answer_{i}"
