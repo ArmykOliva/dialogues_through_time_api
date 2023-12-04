@@ -329,7 +329,7 @@ async def test_stream_post():
 @app.get("/version")
 def version(request: Request):
     print(request.headers)
-    return {"version":"1.3"}
+    return {"version":"1.4"}
 
 @app.get("/chat_history/{unique_id}")
 def get_chat_history(unique_id: str):
