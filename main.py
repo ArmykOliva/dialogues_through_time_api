@@ -1,4 +1,5 @@
 import uvicorn, os, uuid, asyncio, redis,json
+from jinja2 import Environment, BaseLoader
 import openai
 from fastapi import FastAPI, Query,Request
 from fastapi.responses import StreamingResponse
@@ -11,10 +12,11 @@ from traceback import print_exc
 from dataclasses import dataclass, field, asdict
 
 from prompts import *
+from custom_functions.generate_test import generate_test
+
+#load configs
 load_dotenv()
-
 TROLLING_LIMIT = 5
-
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 openai.api_key = os.getenv("API_KEY")
 
@@ -31,14 +33,15 @@ app.add_middleware(
 
 # Connect to Redis
 r = redis.StrictRedis(host='msai.redis.cache.windows.net', port=6380, password=REDIS_PASSWORD, ssl=True)
+env = Environment(loader=BaseLoader())
 
 #this is a class that stores the whole state of the game.
 @dataclass
 class ChatState:
     processing: bool = False #if openai is currently replying, dont allow new requests
     current_state: str = "introduction" #current state of the conversation flow json
-    current_scene: str = "entity" #the current person to talk to = scene in unity that should be active
-    previous_scene: str = "" #the previous scene
+    current_scene: str = "leonardo" #the current person to talk to = scene in unity that should be active
+    previous_scenes: list = field(default_factory=list) #a list of previous scenes the user has been to
     user_msg: str = "" #the last message the user sent
     ai_msg: str = "" #the last message the ai sent
     system_msg: str = "" 
@@ -49,6 +52,8 @@ class ChatState:
     render_chat_history: list = field(default_factory=list) #chat history but where user messages are without the prompt templastes. for rendering in unity
     generated_states: dict = field(default_factory=dict) #whne the entity_ai needs to generate states in the flow itself for the testing questions
     trolling: int = 0
+    points: int = 0 #the points the user gets from answering correctly
+    points_max: int = 0 #the max points the user can get
     end_reason: str = "" #the reason the conversation ended, for example "end_conversation" (will start scene change), "needs_input" (stop generation, wait for user message), "trolling" (the user didnt answer), "forward" (the ai is still going to generate)
     print_response: bool = True
     streaming: bool = False # just for the unity client to know that streaming stopped when he sees this
@@ -126,13 +131,15 @@ async def handle_chat(c:ChatState,request_body:dict):
         c.ai_msg = ""
         c.user_msg = ""
         c.current_state = "introduction"
-        c.previous_scene = c.current_scene
+        c.previous_scenes.append(c.current_scene)
         c.current_scene = CONFIGS[c.current_scene]["exit_scene"]
+        c.points = 0
         return
 
     #get flow
     print(c.current_state)
-    flow = FLOWS[c.current_scene][c.current_state]
+    flows = {**FLOWS[c.current_scene], **c.generated_states}
+    flow = flows[c.current_state]
     c.system_msg = SYSTEM_MSGS[c.current_scene] + "\n" + c.memory
     if (c.jazyk): c.system_msg += "\n" + LANGUAGES[c.jazyk]
 
@@ -149,6 +156,13 @@ async def handle_chat(c:ChatState,request_body:dict):
     #
     #    return
 
+    #points
+    if ("points" in flow):
+        c.points += flow["points"]
+
+    if ("points_max" in flow):
+        c.points_max = flow["points_max"]
+
     #get input
     needs_input = "needs_user_input" in flow and flow["needs_user_input"]
     if (needs_input and c.end_reason != "needs_input"):
@@ -160,11 +174,25 @@ async def handle_chat(c:ChatState,request_body:dict):
     
     #get gpt response
     c.print_response = "print_response" in flow and flow["print_response"]
-    prompt = flow["prompt"].replace("{{user_msg}}",c.user_msg).replace("{{ai_msg}}",c.ai_msg)
+    # Your context variables
+    jinja_context = {
+        "user_msg": c.user_msg,
+        "ai_msg": c.ai_msg,
+        "points": c.points,
+        "points_max": c.points_max,
+        "previous_scene": c.previous_scenes[-1] if c.previous_scenes else "no scenes",
+        "previous_scenes": ", ".join(c.previous_scenes),
+        "previous_chat_history": "\n".join([f"{msg['role']}: {msg['content']}" for msg in c.previous_chat_history]),
+    }
+
+    # Render the template with your context
+    prompt = env.from_string(flow["prompt"]).render(jinja_context)
+    system_prompt = env.from_string(c.system_msg).render(jinja_context)
+
     c.ai_msg = ""
 
     #handle chat send
-    system_msg_dict = {"role":"system","content":c.system_msg}
+    system_msg_dict = {"role":"system","content":system_prompt}
     user_msg_dict = {"role":"user","content":prompt}
     chat_history_dict = c.chat_history.copy()
     chat_history_dict.append(user_msg_dict)
@@ -201,9 +229,11 @@ async def handle_chat(c:ChatState,request_body:dict):
         c.render_chat_history = []
         c.ai_msg = ""
         c.user_msg = ""
-        c.previous_scene = c.current_scene
+        c.previous_scenes.append(c.current_scene)
         c.current_state = "introduction"
-        c.current_scene = flow["scene_change"]
+        scene_change = env.from_string(flow["scene_change"]).render(jinja_context)
+        c.current_scene = scene_change
+        c.points = 0
         return
     
     #get next state
@@ -213,6 +243,11 @@ async def handle_chat(c:ChatState,request_body:dict):
             break
 
     c.end_reason = "forward"
+
+    #custom functions
+    if ("custom_function" in flow):
+        if (flow["custom_function"] == "generate_test"):
+            c.generated_states = generate_test(response)
 
 ## get unique id for saving
 @app.get("/get_unique_id")
@@ -273,8 +308,8 @@ class UserMessage(BaseModel):
     user_msg: str
         
 @app.get("/chat")
-async def read_stream(unique_id: str = Query(None), user_msg: str = Query(None)):
-    request_body = {'unique_id': unique_id, 'user_msg': user_msg}
+async def read_stream(unique_id: str = Query(None), user_msg: str = Query(None), end_conversation: bool = Query(False)):
+    request_body = {'unique_id': unique_id, 'user_msg': user_msg, "end_conversation": end_conversation}
     return StreamingResponse(stream_generator(request_body), media_type="text/event-stream")
 
 async def test_stream_debug():
@@ -298,4 +333,4 @@ def get_chat_history(unique_id: str):
 if __name__ == "__main__":
     #ts
     port = os.environ.get("PORT",80)
-    uvicorn.run("main:app",host="0.0.0.0",port=port,reload=False)
+    uvicorn.run("main:app",host="0.0.0.0",port=port,reload=True)

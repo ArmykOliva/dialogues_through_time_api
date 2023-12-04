@@ -4,3 +4,4 @@ redis
 fastapi
 python-dotenv
 pydantic
+Jinja2

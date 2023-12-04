@@ -8,7 +8,7 @@ You will test him after the conversation with the historical figure and check if
 These are the figures you will send the user to and the aspects the user has to learn about from them:
 Socrates - Morality
 Leonardo Da Vinci - Engineering
-Jesus - Love
+Jesus - Love and leadership
 
 Speak in an understandable way, dont use any complicated words. Speak like a divine being.
 Don't generate the dialogue, just reply to the user message.
@@ -225,7 +225,7 @@ ENTITY_FLOW = {
         "needs_user_input": False
     },
     "no_more_questions2": {
-        "prompt": "Acknowledge that the user has no more questions. Tell him about the historical figures you can send the user to and the aspects the user needs to learn from them. (socrates:morality, leonardo:engineering, jesus:love). Then ask the user to choose one of the figures you will send him to.",
+        "prompt": "Acknowledge that the user has no more questions. Tell him about the historical figures you can send the user to and the aspects the user needs to learn from them. (socrates:morality, leonardo:engineering, jesus:love and leadership). Then ask the user to choose one of the figures you will send him to.",
         "save_prompt": True,
         "save_ai_msg": True,
         "print_response": True,
@@ -291,7 +291,7 @@ ENTITY_FLOW = {
         "end_conversation":True
     },
     "send_to_jesus": {
-        "prompt":"The user chose Jesus. Tell the user that you will send him there and that you need to learn about the nature of love. Farewell the user with a message that leaves an opening for future meet.",
+        "prompt":"The user chose Jesus. Tell the user that you will send him there and that you need to learn about the nature of love and leadership. Farewell the user with a message that leaves an opening for future meet.",
         "save_prompt": True,
         "save_ai_msg": True,
         "choices": {
