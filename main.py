@@ -325,6 +325,11 @@ async def test_stream():
 async def test_stream_post():
     return StreamingResponse(test_stream(),media_type="text/event-stream")
 
+@app.post("/version")
+def version(request: Request):
+    print(request.headers)
+    return {"version":"1.0"}
+
 @app.get("/chat_history/{unique_id}")
 def get_chat_history(unique_id: str):
     chat_state = get_chat_data(unique_id)
