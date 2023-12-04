@@ -128,6 +128,7 @@ async def handle_chat(c:ChatState,request_body:dict):
         c.end_reason = "end_conversation"
         c.previous_chat_history = c.chat_history.copy()
         c.chat_history = []
+        c.render_chat_history = []
         c.ai_msg = ""
         c.user_msg = ""
         c.current_state = "introduction"
@@ -328,7 +329,7 @@ async def test_stream_post():
 @app.get("/version")
 def version(request: Request):
     print(request.headers)
-    return {"version":"1.1"}
+    return {"version":"1.2"}
 
 @app.get("/chat_history/{unique_id}")
 def get_chat_history(unique_id: str):
