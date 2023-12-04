@@ -40,7 +40,7 @@ env = Environment(loader=BaseLoader())
 class ChatState:
     processing: bool = False #if openai is currently replying, dont allow new requests
     current_state: str = "introduction" #current state of the conversation flow json
-    current_scene: str = "leonardo" #the current person to talk to = scene in unity that should be active
+    current_scene: str = "entity" #the current person to talk to = scene in unity that should be active
     previous_scenes: list = field(default_factory=list) #a list of previous scenes the user has been to
     user_msg: str = "" #the last message the user sent
     ai_msg: str = "" #the last message the ai sent
@@ -333,4 +333,4 @@ def get_chat_history(unique_id: str):
 if __name__ == "__main__":
     #ts
     port = os.environ.get("PORT",80)
-    uvicorn.run("main:app",host="0.0.0.0",port=port,reload=True)
+    uvicorn.run("main:app",host="0.0.0.0",port=port,reload=False)
