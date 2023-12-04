@@ -87,7 +87,7 @@ async def gpt_call(messages,temperature=0.4):
     while True:
         try:
             response = ""
-            for chunk in openai.ChatCompletion.create(
+            for chunk in openai.chat.completions.create(
                 #engine="gpt-4",
                 model="gpt-4-1106-preview",
                 messages = messages,
@@ -99,18 +99,18 @@ async def gpt_call(messages,temperature=0.4):
                 stop=None,
                 stream=True,
             ):
-                if (chunk["choices"]):
-                    content = chunk["choices"][0].get("delta", {}).get("content")
+                if (chunk.choices):
+                    content = chunk.choices[0].delta.content
                     if content is not None:
                         response += content
                         yield response
                         await asyncio.sleep(0.00001)
             break
-        except openai.error.RateLimitError:
+        except openai.RateLimitError:
             print("Rate limit exceeded, waiting")
             print_exc()
             sleep(10)
-        except openai.error.InvalidRequestError:
+        except openai.BadRequestError:
             print_exc()
             print("Content policy violation")
             yield None
