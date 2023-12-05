@@ -20,7 +20,7 @@ LEONARDO_CONFIG = {
 
 LEONARDO_FLOW = {
     "introduction": {
-        "prompt":"The user appears in front of you. Introduce yourself and say that you want to teach him/her about science and inventions. Ask him if he ever invented or made something.",
+        "prompt":"Just say exactly this sentence: 'Did you know the human heart functions like a pump? This observation led me to design the first mechanical valve.'",
         "save_prompt":True,
         "save_ai_msg":True,
         "print_response":True,

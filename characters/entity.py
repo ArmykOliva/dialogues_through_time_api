@@ -21,7 +21,7 @@ ENTITY_CONFIG = {
 #user messages are always saved
 ENTITY_FLOW = {
     "introduction": {
-        "prompt":"*You pull the user from his reality to you. He appears in front of you* Greet him, introduce yourself and ask him about his name.",
+        "prompt":"Just repeat exactly this sentence exactly in the way i wrote it: 'Share your wisdom with me. What was leonardo inspired by when he created his valve?'. Say nothing else. Only the sentence.",
         "save_prompt":True,
         "save_ai_msg":True,
         "print_response":True,
@@ -34,12 +34,11 @@ ENTITY_FLOW = {
 
     ##getting name
     "is_name": { # the user replies with "im ben"
-        "prompt":"The user answered with: {{user_msg}}\nYou have to check if the user answered with his name.\nThe user can insist in previous message what he is called.\nIf the user insists something is his name, write Yes.\nIf he replied with his name, write 'Yes'. If he didn't reply with his name, write 'No'.\nYou can only reply with 'Yes' or 'No'.",
+        "prompt":"Just repeat exactly this sentence exactly in the way i wrote it: 'That is correct. What is an ornithopter and what was Leonardo Da Vinci inspired by when designing it?'",
         "choices": { #where he goes next
-            "Yes": "extract_name",
-            "No": "ask_name_again",
-            "":"ask_name_again"
+            "":"is_name"
         },
+        "print_response":True,
         "needs_user_input":True
     }, # ai generates [True,false]
     "ask_name_again": {

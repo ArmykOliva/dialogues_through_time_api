@@ -16,7 +16,7 @@ JESUS_CONFIG = {
 
 JESUS_FLOW = {
     "introduction": {
-        "prompt":"The user appears in front of you. Introduce yourself and say that you want to teach him/her about love and leadership. Tell him some facts about yourself.",
+        "prompt":"Just say this line exactly: 'The mustard seed, though tiny, grows into a tree. This reflects how small acts of kindness can grow into great deeds'",
         "save_prompt":True,
         "save_ai_msg":True,
         "print_response":True,

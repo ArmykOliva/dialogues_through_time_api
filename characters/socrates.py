@@ -16,7 +16,7 @@ SOCRATES_CONFIG = {
 
 SOCRATES_FLOW = {
     "introduction": {
-        "prompt":"The user appears in front of you. Introduce yourself and say that you want to teach him/her about morality. Ask him if he in his life come to understand what justice is.",
+        "prompt":"Just say exactly this: 'What defines morality?'",
         "save_prompt":True,
         "save_ai_msg":True,
         "print_response":True,
