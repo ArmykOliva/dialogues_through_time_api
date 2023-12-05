@@ -7,7 +7,7 @@ This repository contains the FastAPI backend module for "Dialogues Through Time,
 
 [Link to Unity frontend](https://github.com/bentoBAUX/Dialogues-Through-Time)
 
-[YouTube video overview](https://youtu.be/FxS6ehhNVrc).
+[YouTube video overview](https://youtu.be/FxS6ehhNVrc)
 
 ## Features
 - **AI Dialogue Management**
