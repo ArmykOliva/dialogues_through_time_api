@@ -148,15 +148,6 @@ async def handle_chat(c:ChatState,request_body:dict):
     if ("trolling_up" in flow):
         c.trolling += max(0,flow["trolling_up"])
 
-    #if (c.trolling >= TROLLING_LIMIT):
-    #    print("Trolling too much. BYE. DONT COME BACK.")
-    #    c.ai_msg = "Sorry, we will have to start over..."
-    #    yield
-    #    await asyncio.sleep(2)
-    #    c.end_reason = "trolling"
-    #
-    #    return
-
     #points
     if ("points" in flow):
         c.points += flow["points"]
