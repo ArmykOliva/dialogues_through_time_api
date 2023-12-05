@@ -7,6 +7,8 @@ This repository contains the FastAPI backend module for "Dialogues Through Time,
 
 [Link to Unity frontend](https://github.com/bentoBAUX/Dialogues-Through-Time)
 
+[YouTube video overview](https://youtu.be/FxS6ehhNVrc).
+
 ## Features
 - **AI Dialogue Management**
 - **LLM Constraining System**
@@ -45,7 +47,7 @@ uvicorn main:app --reload
 Access the backend API at `http://localhost:8000`.
 
 ## Documentation
-For a detailed explanation of the backend setup and functionalities, refer to our [YouTube video guide](https://youtu.be/FxS6ehhNVrc).
+For a detailed explanation of the backend setup and functionalities, refer to our [YouTube video overview](https://youtu.be/FxS6ehhNVrc).
 
 ## Architecture
 - **Unity Frontend Integration**
